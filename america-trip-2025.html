@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>USA Trip – Agosto 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;
+  --card:#13131a;
+  --card2:#1a1a24;
+  --border:#2a2a3a;
+  --accent:#f5a623;
+  --accent2:#4ecdc4;
+  --accent3:#ff6b6b;
+  --text:#f0f0f0;
+  --muted:#888;
+  --white:#fff;
+  --green:#52e3a0;
+  --blue:#4a9eff;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s;padding:2rem}
+#splash h1{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--accent);text-align:center;line-height:1.2;margin-bottom:.5rem}
+#splash p{color:var(--muted);font-size:.9rem;text-align:center;margin-bottom:2rem}
+#splash .dates{color:var(--accent2);font-size:1rem;font-weight:500;letter-spacing:.05em;margin-bottom:2.5rem}
+
+.splash-btn{display:flex;flex-direction:column;gap:1rem;width:100%;max-width:300px}
+.main-btn{background:var(--accent);color:#000;border:none;border-radius:14px;padding:1rem 1.5rem;font-size:1rem;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;gap:.75rem;transition:transform .15s,opacity .15s}
+.main-btn:active{transform:scale(.97);opacity:.9}
+.main-btn.secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-icon{font-size:1.4rem}
+
+/* MAIN */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.visible{display:flex}
+
+/* TOP NAV */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem}
+.topbar h2{font-size:1rem;font-weight:500;color:var(--text)}
+.back-btn{background:none;border:none;color:var(--accent);font-size:.9rem;cursor:pointer;font-family:'DM Sans',sans-serif;padding:.25rem .5rem;display:flex;align-items:center;gap:.4rem}
+
+/* VIEWS */
+.view{display:none;flex:1;padding:1rem}
+.view.active{display:block}
+
+/* CITY TABS */
+.city-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;overflow-x:auto;padding-bottom:.25rem}
+.city-tab{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.5rem 1rem;font-size:.85rem;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s;color:var(--muted)}
+.city-tab.active{background:var(--accent);color:#000;border-color:var(--accent)}
+
+/* MAP CONTAINER */
+.map-wrapper{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1rem}
+.map-canvas{position:relative;width:100%;padding-bottom:70%;overflow:hidden}
+.map-canvas svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* POI LIST */
+.poi-list{display:flex;flex-direction:column;gap:.75rem;margin-top:1rem}
+.poi-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem;cursor:pointer;transition:border-color .15s,transform .1s;display:flex;gap:.75rem;align-items:flex-start}
+.poi-card:active{transform:scale(.98)}
+.poi-card.selected,.poi-card:hover{border-color:var(--accent)}
+.poi-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.poi-icon.sight{background:rgba(245,166,35,.15);color:var(--accent)}
+.poi-icon.food{background:rgba(78,205,196,.15);color:var(--accent2)}
+.poi-icon.fun{background:rgba(82,227,160,.15);color:var(--green)}
+.poi-title{font-size:.95rem;font-weight:500;margin-bottom:.2rem}
+.poi-meta{font-size:.78rem;color:var(--muted);margin-bottom:.4rem}
+.poi-cost{font-size:.8rem;color:var(--accent2);font-weight:500}
+.poi-cost.free{color:var(--green)}
+.poi-desc{font-size:.82rem;color:var(--muted);line-height:1.5;margin-top:.4rem;display:none}
+.poi-card.selected .poi-desc{display:block}
+.poi-tip{font-size:.78rem;color:var(--accent);margin-top:.4rem;font-style:italic}
+
+/* DETAIL PANEL */
+.detail-panel{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:1.25rem;margin-top:1rem;display:none}
+.detail-panel.show{display:block}
+
+/* ITINERARY VIEW */
+.day-selector{display:flex;gap:.5rem;overflow-x:auto;margin-bottom:1.5rem;padding-bottom:.25rem}
+.day-btn{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.5rem .9rem;font-size:.82rem;cursor:pointer;color:var(--muted);white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif}
+.day-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+
+.day-header{margin-bottom:1.5rem}
+.day-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent);margin-bottom:.25rem}
+.day-subtitle{font-size:.85rem;color:var(--muted)}
+.day-city-badge{display:inline-block;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.2rem .6rem;font-size:.75rem;color:var(--accent2);margin-left:.5rem;vertical-align:middle}
+
+.timeline{position:relative;padding-left:2.5rem}
+.timeline::before{content:'';position:absolute;left:1rem;top:0;bottom:0;width:1px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:1.5rem}
+.tl-dot{position:absolute;left:-1.6rem;top:.3rem;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);flex-shrink:0}
+.tl-dot.food{background:var(--accent2)}
+.tl-dot.tip{background:var(--muted)}
+.tl-time{font-size:.75rem;color:var(--muted);margin-bottom:.2rem;font-weight:500;letter-spacing:.03em}
+.tl-name{font-size:.95rem;font-weight:500;margin-bottom:.2rem}
+.tl-desc{font-size:.82rem;color:var(--muted);line-height:1.5}
+.tl-cost{font-size:.78rem;margin-top:.3rem}
+.tl-cost span{background:rgba(245,166,35,.12);color:var(--accent);padding:.15rem .5rem;border-radius:6px}
+.tl-cost span.free{background:rgba(82,227,160,.12);color:var(--green)}
+.tl-cost span.low{background:rgba(78,205,196,.12);color:var(--accent2)}
+
+/* BUDGET SECTION */
+.budget-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem}
+.budget-title{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom.75rem;margin-bottom:.75rem}
+.budget-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border)}
+.budget-row:last-child{border-bottom:none}
+.budget-label{font-size:.88rem;color:var(--text)}
+.budget-val{font-size:.88rem;font-weight:500;color:var(--accent)}
+.budget-total{margin-top:.75rem;padding-top:.75rem;border-top:2px solid var(--border);display:flex;justify-content:space-between}
+.budget-total-label{font-size:.95rem;font-weight:500}
+.budget-total-val{font-size:1.1rem;font-weight:500;color:var(--accent)}
+
+/* ALERT / TIP */
+.info-box{background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.25);border-radius:12px;padding:.9rem 1rem;margin-bottom:1rem;font-size:.83rem;color:#7db8ff;line-height:1.6}
+.info-box.warn{background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.25);color:#f5c96a}
+.info-box strong{display:block;margin-bottom:.25rem;font-weight:500}
+
+/* ATLANTC CITY TOGGLE */
+.toggle-section{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1rem}
+.toggle-header{display:flex;gap:0}
+.toggle-opt{flex:1;padding:.75rem .5rem;text-align:center;font-size:.82rem;cursor:pointer;border:none;background:none;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .15s}
+.toggle-opt.active{background:var(--accent);color:#000;font-weight:500}
+.toggle-content{padding:1rem;display:none}
+.toggle-content.show{display:block}
+.toggle-content p{font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:.5rem}
+.toggle-content b{color:var(--text)}
+
+/* SECTION HEADERS */
+.section-header{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:1.5rem 0 .75rem}
+
+/* MAP DOTS */
+.map-dot{cursor:pointer}
+.map-dot circle{transition:r .15s}
+.map-dot:hover circle.outer{r:10}
+.map-label{font-size:9px;font-family:'DM Sans',sans-serif;fill:#fff}
+.map-road{stroke:#2a2a3a;stroke-width:1.5;fill:none}
+.map-park{fill:#1a2d1e}
+.map-water{fill:#0d1f2d}
+.map-block{fill:#1a1a24}
+
+/* RESPONSIVE */
+@media(min-width:500px){
+  .splash-btn{max-width:340px}
+}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div style="font-size:3rem;margin-bottom:1rem">✈️</div>
+  <h1>USA Road Trip<br>Agosto 2025</h1>
+  <p>New York · Philadelphia · Washington · Atlantic City</p>
+  <div class="dates">5 – 19 agosto · 6 persone</div>
+  <div class="splash-btn">
+    <button class="main-btn" onclick="openView('map')">
+      <span class="btn-icon">🗺️</span> Esplora la Mappa
+    </button>
+    <button class="main-btn secondary" onclick="openView('itinerary')">
+      <span class="btn-icon">📅</span> Itinerario Giornaliero
+    </button>
+    <button class="main-btn secondary" onclick="openView('budget')">
+      <span class="btn-icon">💰</span> Budget & Costi
+    </button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <button class="back-btn" onclick="goHome()">← Home</button>
+    <h2 id="topbar-title">Mappa</h2>
+    <div></div>
+  </div>
+
+  <!-- MAP VIEW -->
+  <div class="view" id="view-map">
+    <div class="city-tabs">
+      <div class="city-tab active" onclick="setCity('ny',this)">New York</div>
+      <div class="city-tab" onclick="setCity('ph',this)">Philadelphia</div>
+      <div class="city-tab" onclick="setCity('dc',this)">Washington DC</div>
+      <div class="city-tab" onclick="setCity('ac',this)">Atlantic City</div>
+    </div>
+
+    <!-- NYC MAP -->
+    <div class="map-wrapper" id="map-ny">
+      <div class="map-canvas">
+        <svg viewBox="0 0 360 252" xmlns="http://www.w3.org/2000/svg">
+          <rect width="360" height="252" fill="#0d1520"/>
+          <!-- Central Park -->
+          <rect x="130" y="10" width="60" height="110" rx="4" class="map-park"/>
+          <text x="160" y="68" text-anchor="middle" font-size="7" fill="#3a6b40" font-family="DM Sans">Central Park</text>
+          <!-- Hudson River -->
+          <rect x="0" y="0" width="18" height="252" class="map-water"/>
+          <!-- East River -->
+          <rect x="342" y="0" width="18" height="252" class="map-water"/>
+          <!-- City blocks midtown -->
+          <rect x="20" y="0" width="108" height="252" rx="0" fill="#13131a"/>
+          <rect x="192" y="0" width="148" height="252" rx="0" fill="#13131a"/>
+          <!-- Streets grid simplified -->
+          <line x1="20" y1="125" x2="340" y2="125" stroke="#222" stroke-width="1.2"/>
+          <line x1="20" y1="145" x2="340" y2="145" stroke="#222" stroke-width="1.2"/>
+          <line x1="20" y1="165" x2="340" y2="165" stroke="#222" stroke-width="1.2"/>
+          <line x1="20" y1="185" x2="340" y2="185" stroke="#222" stroke-width="1.2"/>
+          <line x1="20" y1="205" x2="340" y2="205" stroke="#222" stroke-width="1.2"/>
+          <line x1="20" y1="225" x2="340" y2="225" stroke="#222" stroke-width="1.2"/>
+          <line x1="50" y1="0" x2="50" y2="252" stroke="#222" stroke-width="1"/>
+          <line x1="80" y1="0" x2="80" y2="252" stroke="#222" stroke-width="1"/>
+          <line x1="200" y1="0" x2="200" y2="252" stroke="#222" stroke-width="1"/>
+          <line x1="230" y1="0" x2="230" y2="252" stroke="#222" stroke-width="1"/>
+          <line x1="260" y1="0" x2="260" y2="252" stroke="#222" stroke-width="1"/>
+          <line x1="290" y1="0" x2="290" y2="252" stroke="#222" stroke-width="1"/>
+          <line x1="315" y1="0" x2="315" y2="252" stroke="#222" stroke-width="1"/>
+          <!-- Broadway diagonal -->
+          <line x1="155" y1="10" x2="65" y2="252" stroke="#2a2a3a" stroke-width="2.5"/>
+          <text x="90" y="185" font-size="7" fill="#333" font-family="DM Sans" transform="rotate(-25,90,185)">Broadway</text>
+
+          <!-- HOTEL star -->
+          <g class="map-dot" onclick="showMapPoi('hotel-ts')">
+            <circle cx="95" cy="148" r="14" fill="rgba(245,166,35,.15)" stroke="rgba(245,166,35,.4)" stroke-width="1"/>
+            <circle cx="95" cy="148" r="7" fill="#f5a623" class="outer"/>
+            <text x="95" y="152" text-anchor="middle" font-size="8" fill="#000">★</text>
+          </g>
+          <text x="95" y="168" text-anchor="middle" font-size="8" fill="#f5a623" font-family="DM Sans">Hotel</text>
+
+          <!-- Times Square -->
+          <g class="map-dot" onclick="showMapPoi('ts')">
+            <circle cx="95" cy="138" r="8" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="95" cy="138" r="4" fill="#f5a623"/>
+          </g>
+          <text x="95" y="130" text-anchor="middle" font-size="7.5" fill="#f5c96a" font-family="DM Sans">Times Sq</text>
+
+          <!-- Rockefeller Center -->
+          <g class="map-dot" onclick="showMapPoi('rock')">
+            <circle cx="122" cy="138" r="6" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="122" cy="138" r="3" fill="#f5a623"/>
+          </g>
+          <text x="122" y="131" text-anchor="middle" font-size="7" fill="#f5c96a" font-family="DM Sans">Rock Center</text>
+
+          <!-- Empire State -->
+          <g class="map-dot" onclick="showMapPoi('esb')">
+            <circle cx="78" cy="170" r="6" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="78" cy="170" r="3" fill="#f5a623"/>
+          </g>
+          <text x="55" y="163" text-anchor="middle" font-size="7" fill="#f5c96a" font-family="DM Sans">Emp. State</text>
+
+          <!-- Central Park -->
+          <g class="map-dot" onclick="showMapPoi('cp')">
+            <circle cx="160" cy="70" r="6" fill="rgba(82,227,160,.3)" stroke="#52e3a0" stroke-width="1" class="outer"/>
+            <circle cx="160" cy="70" r="3" fill="#52e3a0"/>
+          </g>
+
+          <!-- High Line -->
+          <g class="map-dot" onclick="showMapPoi('hl')">
+            <circle cx="40" cy="185" r="6" fill="rgba(82,227,160,.3)" stroke="#52e3a0" stroke-width="1" class="outer"/>
+            <circle cx="40" cy="185" r="3" fill="#52e3a0"/>
+          </g>
+          <text x="42" y="198" text-anchor="middle" font-size="7" fill="#52e3a0" font-family="DM Sans">High Line</text>
+
+          <!-- Brooklyn Bridge -->
+          <g class="map-dot" onclick="showMapPoi('bb')">
+            <circle cx="270" cy="238" r="6" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="270" cy="238" r="3" fill="#f5a623"/>
+          </g>
+          <text x="270" y="230" text-anchor="middle" font-size="7" fill="#f5c96a" font-family="DM Sans">Bkln Bridge</text>
+
+          <!-- Joe's Pizza -->
+          <g class="map-dot" onclick="showMapPoi('pizza')">
+            <circle cx="80" cy="188" r="5" fill="rgba(78,205,196,.3)" stroke="#4ecdc4" stroke-width="1" class="outer"/>
+            <circle cx="80" cy="188" r="2.5" fill="#4ecdc4"/>
+          </g>
+          <text x="80" y="200" text-anchor="middle" font-size="7" fill="#4ecdc4" font-family="DM Sans">Joe's Pizza</text>
+
+          <!-- Los Tacos -->
+          <g class="map-dot" onclick="showMapPoi('tacos')">
+            <circle cx="88" cy="152" r="5" fill="rgba(78,205,196,.3)" stroke="#4ecdc4" stroke-width="1" class="outer"/>
+            <circle cx="88" cy="152" r="2.5" fill="#4ecdc4"/>
+          </g>
+
+          <!-- Legend -->
+          <circle cx="28" cy="15" r="4" fill="#f5a623"/>
+          <text x="36" y="19" font-size="7" fill="#888" font-family="DM Sans">Attrazioni</text>
+          <circle cx="28" cy="28" r="4" fill="#4ecdc4"/>
+          <text x="36" y="32" font-size="7" fill="#888" font-family="DM Sans">Ristoranti</text>
+          <circle cx="28" cy="41" r="4" fill="#52e3a0"/>
+          <text x="36" y="45" font-size="7" fill="#888" font-family="DM Sans">Parchi/Free</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- PHILADELPHIA MAP -->
+    <div class="map-wrapper" id="map-ph" style="display:none">
+      <div class="map-canvas">
+        <svg viewBox="0 0 360 252" xmlns="http://www.w3.org/2000/svg">
+          <rect width="360" height="252" fill="#0d1520"/>
+          <!-- Delaware River -->
+          <rect x="310" y="0" width="50" height="252" class="map-water"/>
+          <text x="330" y="130" text-anchor="middle" font-size="7" fill="#1a3a5c" font-family="DM Sans" transform="rotate(90,330,130)">Delaware River</text>
+          <!-- Schuylkill River -->
+          <rect x="30" y="0" width="16" height="252" class="map-water"/>
+          <!-- Fairmount Park -->
+          <rect x="0" y="0" width="30" height="180" rx="0" class="map-park"/>
+          <!-- City grid -->
+          <rect x="46" y="0" width="262" height="252" fill="#13131a"/>
+          <!-- Main streets -->
+          <line x1="46" y1="80" x2="308" y2="80" stroke="#222" stroke-width="1.5"/>
+          <line x1="46" y1="110" x2="308" y2="110" stroke="#222" stroke-width="1.5"/>
+          <line x1="46" y1="140" x2="308" y2="140" stroke="#2a2a3a" stroke-width="2"/>
+          <line x1="46" y1="170" x2="308" y2="170" stroke="#222" stroke-width="1.5"/>
+          <line x1="46" y1="200" x2="308" y2="200" stroke="#222" stroke-width="1.5"/>
+          <line x1="46" y1="230" x2="308" y2="230" stroke="#222" stroke-width="1"/>
+          <line x1="100" y1="0" x2="100" y2="252" stroke="#222" stroke-width="1"/>
+          <line x1="150" y1="0" x2="150" y2="252" stroke="#222" stroke-width="1.5"/>
+          <line x1="200" y1="0" x2="200" y2="252" stroke="#222" stroke-width="1"/>
+          <line x1="250" y1="0" x2="250" y2="252" stroke="#222" stroke-width="1"/>
+          <text x="150" y="145" text-anchor="middle" font-size="8" fill="#333" font-family="DM Sans">Market St</text>
+
+          <!-- Hotel zone badge -->
+          <rect x="90" y="50" width="120" height="30" rx="6" fill="rgba(245,166,35,.1)" stroke="rgba(245,166,35,.3)" stroke-width="1"/>
+          <text x="150" y="70" text-anchor="middle" font-size="8" fill="#f5a623" font-family="DM Sans">★ Zona Consigliata Hotel</text>
+
+          <!-- Independence Hall -->
+          <g class="map-dot" onclick="showMapPoi('indephall')">
+            <circle cx="210" cy="160" r="8" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="210" cy="160" r="4" fill="#f5a623"/>
+          </g>
+          <text x="210" y="150" text-anchor="middle" font-size="7.5" fill="#f5c96a" font-family="DM Sans">Indep. Hall</text>
+
+          <!-- Liberty Bell -->
+          <g class="map-dot" onclick="showMapPoi('lbell')">
+            <circle cx="200" cy="148" r="6" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="200" cy="148" r="3" fill="#f5a623"/>
+          </g>
+
+          <!-- Museum American Revolution -->
+          <g class="map-dot" onclick="showMapPoi('amrev')">
+            <circle cx="230" cy="152" r="6" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="230" cy="152" r="3" fill="#f5a623"/>
+          </g>
+          <text x="255" y="152" text-anchor="start" font-size="7" fill="#f5c96a" font-family="DM Sans">Mus. Rivoluzione</text>
+
+          <!-- Betsy Ross -->
+          <g class="map-dot" onclick="showMapPoi('betsy')">
+            <circle cx="240" cy="138" r="5" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="240" cy="138" r="2.5" fill="#f5a623"/>
+          </g>
+          <text x="240" y="130" text-anchor="middle" font-size="7" fill="#f5c96a" font-family="DM Sans">Betsy Ross</text>
+
+          <!-- Magic Gardens -->
+          <g class="map-dot" onclick="showMapPoi('magic')">
+            <circle cx="175" cy="195" r="6" fill="rgba(82,227,160,.3)" stroke="#52e3a0" stroke-width="1" class="outer"/>
+            <circle cx="175" cy="195" r="3" fill="#52e3a0"/>
+          </g>
+          <text x="175" y="188" text-anchor="middle" font-size="7" fill="#52e3a0" font-family="DM Sans">Magic Gardens</text>
+
+          <!-- Reading Terminal -->
+          <g class="map-dot" onclick="showMapPoi('reading')">
+            <circle cx="148" cy="110" r="6" fill="rgba(78,205,196,.3)" stroke="#4ecdc4" stroke-width="1" class="outer"/>
+            <circle cx="148" cy="110" r="3" fill="#4ecdc4"/>
+          </g>
+          <text x="148" y="102" text-anchor="middle" font-size="7" fill="#4ecdc4" font-family="DM Sans">Reading Terminal</text>
+
+          <!-- Cheesesteak sign -->
+          <g class="map-dot" onclick="showMapPoi('phcheese')">
+            <circle cx="100" cy="178" r="5" fill="rgba(78,205,196,.3)" stroke="#4ecdc4" stroke-width="1" class="outer"/>
+            <circle cx="100" cy="178" r="2.5" fill="#4ecdc4"/>
+          </g>
+          <text x="100" y="170" text-anchor="middle" font-size="7" fill="#4ecdc4" font-family="DM Sans">Cheesesteak</text>
+
+          <!-- Legend -->
+          <circle cx="58" cy="220" r="4" fill="#f5a623"/>
+          <text x="66" y="224" font-size="7" fill="#888" font-family="DM Sans">Attrazioni</text>
+          <circle cx="58" cy="232" r="4" fill="#4ecdc4"/>
+          <text x="66" y="236" font-size="7" fill="#888" font-family="DM Sans">Cibo</text>
+          <circle cx="58" cy="244" r="4" fill="#52e3a0"/>
+          <text x="66" y="248" font-size="7" fill="#888" font-family="DM Sans">Gratis</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- WASHINGTON DC MAP -->
+    <div class="map-wrapper" id="map-dc" style="display:none">
+      <div class="map-canvas">
+        <svg viewBox="0 0 360 252" xmlns="http://www.w3.org/2000/svg">
+          <rect width="360" height="252" fill="#0d1520"/>
+          <!-- Potomac River -->
+          <rect x="0" y="210" width="360" height="42" class="map-water"/>
+          <text x="180" y="230" text-anchor="middle" font-size="7" fill="#1a3a5c" font-family="DM Sans">Potomac River</text>
+          <!-- National Mall park -->
+          <rect x="60" y="95" width="240" height="50" rx="4" class="map-park"/>
+          <text x="180" y="124" text-anchor="middle" font-size="7.5" fill="#3a6b40" font-family="DM Sans">National Mall</text>
+          <!-- Reflecting Pool -->
+          <rect x="100" y="115" width="100" height="15" rx="4" class="map-water"/>
+          <!-- Streets diagonal (DC style) -->
+          <line x1="180" y1="0" x2="180" y2="210" stroke="#2a2a3a" stroke-width="2"/>
+          <line x1="60" y1="0" x2="60" y2="210" stroke="#222" stroke-width="1.2"/>
+          <line x1="300" y1="0" x2="300" y2="210" stroke="#222" stroke-width="1.2"/>
+          <line x1="0" y1="95" x2="360" y2="95" stroke="#222" stroke-width="1.2"/>
+          <line x1="0" y1="145" x2="360" y2="145" stroke="#222" stroke-width="1.2"/>
+          <line x1="0" y1="55" x2="360" y2="55" stroke="#222" stroke-width="1.2"/>
+          <!-- Diagonal avenues -->
+          <line x1="0" y1="145" x2="180" y2="0" stroke="#2a2a3a" stroke-width="1.5"/>
+          <line x1="360" y1="145" x2="180" y2="0" stroke="#2a2a3a" stroke-width="1.5"/>
+
+          <!-- Capitol -->
+          <g class="map-dot" onclick="showMapPoi('capitol')">
+            <circle cx="310" cy="120" r="8" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="310" cy="120" r="4" fill="#f5a623"/>
+          </g>
+          <text x="310" y="110" text-anchor="middle" font-size="7.5" fill="#f5c96a" font-family="DM Sans">Campidoglio</text>
+
+          <!-- Washington Monument -->
+          <g class="map-dot" onclick="showMapPoi('wash-mon')">
+            <circle cx="180" cy="120" r="8" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="180" cy="120" r="4" fill="#f5a623"/>
+          </g>
+          <text x="180" y="110" text-anchor="middle" font-size="7.5" fill="#f5c96a" font-family="DM Sans">Washington Mon.</text>
+
+          <!-- Lincoln Memorial -->
+          <g class="map-dot" onclick="showMapPoi('lincoln')">
+            <circle cx="68" cy="120" r="7" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="68" cy="120" r="3.5" fill="#f5a623"/>
+          </g>
+          <text x="68" y="110" text-anchor="middle" font-size="7" fill="#f5c96a" font-family="DM Sans">Lincoln Mem.</text>
+
+          <!-- White House -->
+          <g class="map-dot" onclick="showMapPoi('whitehouse')">
+            <circle cx="168" cy="58" r="7" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="168" cy="58" r="3.5" fill="#f5a623"/>
+          </g>
+          <text x="168" y="48" text-anchor="middle" font-size="7.5" fill="#f5c96a" font-family="DM Sans">Casa Bianca</text>
+
+          <!-- Smithsonian Air -->
+          <g class="map-dot" onclick="showMapPoi('smithair')">
+            <circle cx="255" cy="132" r="6" fill="rgba(82,227,160,.3)" stroke="#52e3a0" stroke-width="1" class="outer"/>
+            <circle cx="255" cy="132" r="3" fill="#52e3a0"/>
+          </g>
+          <text x="255" y="143" text-anchor="middle" font-size="7" fill="#52e3a0" font-family="DM Sans">Smithsonian</text>
+
+          <!-- Vietnam Memorial -->
+          <g class="map-dot" onclick="showMapPoi('vietnam')">
+            <circle cx="115" cy="108" r="5" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="115" cy="108" r="2.5" fill="#f5a623"/>
+          </g>
+          <text x="115" y="100" text-anchor="middle" font-size="7" fill="#f5c96a" font-family="DM Sans">Vietnam Mem.</text>
+
+          <!-- Ben's Chili Bowl -->
+          <g class="map-dot" onclick="showMapPoi('bens')">
+            <circle cx="200" cy="28" r="5" fill="rgba(78,205,196,.3)" stroke="#4ecdc4" stroke-width="1" class="outer"/>
+            <circle cx="200" cy="28" r="2.5" fill="#4ecdc4"/>
+          </g>
+          <text x="200" y="20" text-anchor="middle" font-size="7" fill="#4ecdc4" font-family="DM Sans">Ben's Chili Bowl</text>
+
+          <!-- Hotel zone -->
+          <rect x="130" y="20" width="100" height="25" rx="6" fill="rgba(245,166,35,.08)" stroke="rgba(245,166,35,.25)" stroke-width="1"/>
+          <text x="180" y="36" text-anchor="middle" font-size="7.5" fill="#f5a623" font-family="DM Sans">★ Zona Consigliata Hotel</text>
+
+          <!-- Legend -->
+          <circle cx="18" cy="160" r="4" fill="#f5a623"/>
+          <text x="26" y="164" font-size="7" fill="#888" font-family="DM Sans">Attrazioni</text>
+          <circle cx="18" cy="172" r="4" fill="#4ecdc4"/>
+          <text x="26" y="176" font-size="7" fill="#888" font-family="DM Sans">Cibo</text>
+          <circle cx="18" cy="184" r="4" fill="#52e3a0"/>
+          <text x="26" y="188" font-size="7" fill="#888" font-family="DM Sans">Gratis</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ATLANTIC CITY MAP -->
+    <div class="map-wrapper" id="map-ac" style="display:none">
+      <div class="map-canvas">
+        <svg viewBox="0 0 360 252" xmlns="http://www.w3.org/2000/svg">
+          <rect width="360" height="252" fill="#0d1520"/>
+          <!-- Ocean -->
+          <rect x="0" y="160" width="360" height="92" class="map-water"/>
+          <text x="180" y="200" text-anchor="middle" font-size="9" fill="#1a3a5c" font-family="DM Sans">Oceano Atlantico</text>
+          <!-- Beach -->
+          <rect x="0" y="148" width="360" height="15" fill="#1a1510"/>
+          <!-- Boardwalk -->
+          <rect x="0" y="140" width="360" height="10" fill="#2a2015"/>
+          <text x="180" y="148" text-anchor="middle" font-size="8" fill="#5a4a25" font-family="DM Sans">Boardwalk</text>
+          <!-- City blocks -->
+          <rect x="0" y="0" width="360" height="140" fill="#13131a"/>
+          <!-- Streets -->
+          <line x1="0" y1="50" x2="360" y2="50" stroke="#222" stroke-width="1.2"/>
+          <line x1="0" y1="90" x2="360" y2="90" stroke="#222" stroke-width="1.2"/>
+          <line x1="0" y1="120" x2="360" y2="120" stroke="#222" stroke-width="1.2"/>
+          <line x1="60" y1="0" x2="60" y2="140" stroke="#222" stroke-width="1"/>
+          <line x1="120" y1="0" x2="120" y2="140" stroke="#222" stroke-width="1"/>
+          <line x1="180" y1="0" x2="180" y2="140" stroke="#222" stroke-width="1"/>
+          <line x1="240" y1="0" x2="240" y2="140" stroke="#222" stroke-width="1"/>
+          <line x1="300" y1="0" x2="300" y2="140" stroke="#222" stroke-width="1"/>
+
+          <!-- Atlantic City Boardwalk POI -->
+          <g class="map-dot" onclick="showMapPoi('acboard')">
+            <circle cx="180" cy="140" r="8" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="180" cy="140" r="4" fill="#f5a623"/>
+          </g>
+          <text x="180" y="130" text-anchor="middle" font-size="7.5" fill="#f5c96a" font-family="DM Sans">Boardwalk</text>
+
+          <!-- Steel Pier -->
+          <g class="map-dot" onclick="showMapPoi('steelpier')">
+            <rect x="100" y="140" width="40" height="50" rx="3" fill="#1a1a24" stroke="#2a2a3a" stroke-width="1"/>
+            <circle cx="120" cy="158" r="6" fill="rgba(82,227,160,.3)" stroke="#52e3a0" stroke-width="1" class="outer"/>
+            <circle cx="120" cy="158" r="3" fill="#52e3a0"/>
+          </g>
+          <text x="120" y="175" text-anchor="middle" font-size="7" fill="#52e3a0" font-family="DM Sans">Steel Pier</text>
+
+          <!-- Caesars -->
+          <g class="map-dot" onclick="showMapPoi('caesars')">
+            <circle cx="250" cy="100" r="7" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="250" cy="100" r="3.5" fill="#f5a623"/>
+          </g>
+          <text x="250" y="90" text-anchor="middle" font-size="7" fill="#f5c96a" font-family="DM Sans">Caesars Casino</text>
+
+          <!-- Hard Rock -->
+          <g class="map-dot" onclick="showMapPoi('hardrock')">
+            <circle cx="310" cy="100" r="6" fill="rgba(245,166,35,.3)" stroke="#f5a623" stroke-width="1" class="outer"/>
+            <circle cx="310" cy="100" r="3" fill="#f5a623"/>
+          </g>
+          <text x="310" y="90" text-anchor="middle" font-size="7" fill="#f5c96a" font-family="DM Sans">Hard Rock</text>
+
+          <!-- Beach -->
+          <g class="map-dot" onclick="showMapPoi('acbeach')">
+            <circle cx="70" cy="155" r="6" fill="rgba(82,227,160,.3)" stroke="#52e3a0" stroke-width="1" class="outer"/>
+            <circle cx="70" cy="155" r="3" fill="#52e3a0"/>
+          </g>
+          <text x="70" y="148" text-anchor="middle" font-size="7" fill="#52e3a0" font-family="DM Sans">Spiaggia</text>
+
+          <!-- Train Station -->
+          <rect x="25" y="20" width="55" height="25" rx="4" fill="#1a1a24" stroke="var(--border)" stroke-width="1"/>
+          <text x="52" y="36" text-anchor="middle" font-size="7" fill="#888" font-family="DM Sans">Stazione Treno</text>
+
+          <circle cx="18" cy="18" r="4" fill="#f5a623"/>
+          <text x="26" y="22" font-size="7" fill="#888" font-family="DM Sans">Attrazioni/Casino</text>
+          <circle cx="18" cy="30" r="4" fill="#52e3a0"/>
+          <text x="26" y="34" font-size="7" fill="#888" font-family="DM Sans">Gratis/Spiaggia</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- POI INFO PANEL -->
+    <div class="detail-panel" id="poi-detail"></div>
+
+    <!-- POI LIST -->
+    <div id="poi-list-container"></div>
+  </div>
+
+  <!-- ITINERARY VIEW -->
+  <div class="view" id="view-itinerary">
+    <div class="day-selector" id="day-selector"></div>
+    <div id="day-content"></div>
+  </div>
+
+  <!-- BUDGET VIEW -->
+  <div class="view" id="view-budget">
+    <div class="info-box">
+      <strong>📌 Come sono calcolati i costi</strong>
+      Stime medie in dollari (USD). Cambi €/$ circa 1:1.08. I prezzi includono opzioni low-cost selezionate. I fratelli di 9 e 14 anni hanno riduzioni su musei/trasporti (~50% sotto 12 anni, ~20% 12-17). 6 persone totali.
+    </div>
+
+    <p class="section-header">New York – 7 notti (5–12 ago)</p>
+    <div class="budget-card">
+      <div class="budget-title">Attrazioni & Ingressi</div>
+      <div class="budget-row"><span class="budget-label">Top of the Rock (adulto)</span><span class="budget-val">$40</span></div>
+      <div class="budget-row"><span class="budget-label">Empire State Bldg (adulto)</span><span class="budget-val">$44</span></div>
+      <div class="budget-row"><span class="budget-label">Central Park, High Line, Brooklyn Bridge</span><span class="budget-val">$0 GRATIS</span></div>
+      <div class="budget-row"><span class="budget-label">Times Square (passeggiata)</span><span class="budget-val">$0 GRATIS</span></div>
+      <div class="budget-row"><span class="budget-label">Statua della Libertà (traghetto + ingresso)</span><span class="budget-val">~$24 adulto, $12 kid</span></div>
+    </div>
+
+    <div class="budget-card">
+      <div class="budget-title">Cibo/giorno stimato</div>
+      <div class="budget-row"><span class="budget-label">Colazione (bagel, diner)</span><span class="budget-val">$5–8/pp</span></div>
+      <div class="budget-row"><span class="budget-label">Pranzo (pizza, tacos, burger)</span><span class="budget-val">$8–14/pp</span></div>
+      <div class="budget-row"><span class="budget-label">Cena</span><span class="budget-val">$15–25/pp</span></div>
+      <div class="budget-row"><span class="budget-label">Snack/bevande</span><span class="budget-val">$5/pp</span></div>
+    </div>
+
+    <div class="budget-card">
+      <div class="budget-title">🗽 Stima NY – 7 giorni a persona</div>
+      <div class="budget-row"><span class="budget-label">Adulto (3 adulti)</span><span class="budget-val">~$500–650</span></div>
+      <div class="budget-row"><span class="budget-label">14 anni</span><span class="budget-val">~$380–480</span></div>
+      <div class="budget-row"><span class="budget-label">9 anni</span><span class="budget-val">~$250–320</span></div>
+      <div class="budget-total">
+        <span class="budget-total-label">Totale gruppo (6 pers.)</span>
+        <span class="budget-total-val">~$2.600–3.900</span>
+      </div>
+    </div>
+
+    <p class="section-header">Philadelphia – 3 notti (12–15 ago)</p>
+    <div class="budget-card">
+      <div class="budget-title">🏛 Attrazioni Philly</div>
+      <div class="budget-row"><span class="budget-label">Liberty Bell + Independence Hall</span><span class="budget-val">$0 GRATIS</span></div>
+      <div class="budget-row"><span class="budget-label">Museo Rivoluzione Americana</span><span class="budget-val">$21 adulto, $13 kid</span></div>
+      <div class="budget-row"><span class="budget-label">Magic Gardens (arte)</span><span class="budget-val">$15 adulto, $5 kid</span></div>
+      <div class="budget-row"><span class="budget-label">Betsy Ross House</span><span class="budget-val">$7 adulto, $5 kid</span></div>
+    </div>
+    <div class="budget-card">
+      <div class="budget-title">🏙 Stima Philly – 3 giorni a persona</div>
+      <div class="budget-row"><span class="budget-label">Adulto</span><span class="budget-val">~$200–280</span></div>
+      <div class="budget-row"><span class="budget-label">14 anni</span><span class="budget-val">~$150–210</span></div>
+      <div class="budget-row"><span class="budget-label">9 anni</span><span class="budget-val">~$90–130</span></div>
+      <div class="budget-total">
+        <span class="budget-total-label">Totale gruppo</span>
+        <span class="budget-total-val">~$980–1.550</span>
+      </div>
+    </div>
+
+    <p class="section-header">Atlantic City – gita di 1 giorno</p>
+    <div class="budget-card">
+      <div class="budget-title">🎡 AC – costi tipici</div>
+      <div class="budget-row"><span class="budget-label">Treno da Philly (andata/ritorno)</span><span class="budget-val">~$14 pp A/R</span></div>
+      <div class="budget-row"><span class="budget-label">Steel Pier (giostre a gettoni)</span><span class="budget-val">$20–40 pp</span></div>
+      <div class="budget-row"><span class="budget-label">Spiaggia (ingresso)</span><span class="budget-val">$7 pp</span></div>
+      <div class="budget-row"><span class="budget-label">Casino (solo adulti, opzionale)</span><span class="budget-val">budget libero</span></div>
+      <div class="budget-row"><span class="budget-label">Cibo boardwalk</span><span class="budget-val">$15–20 pp</span></div>
+      <div class="budget-total">
+        <span class="budget-total-label">Totale gruppo ~</span>
+        <span class="budget-total-val">~$350–600</span>
+      </div>
+    </div>
+
+    <p class="section-header">Washington DC – 3 notti (15–18 ago)</p>
+    <div class="budget-card">
+      <div class="budget-title">🏛 Attrazioni DC</div>
+      <div class="budget-row"><span class="budget-label">Musei Smithsonian (tutti)</span><span class="budget-val">$0 GRATIS</span></div>
+      <div class="budget-row"><span class="budget-label">National Mall + Monumenti</span><span class="budget-val">$0 GRATIS</span></div>
+      <div class="budget-row"><span class="budget-label">Casa Bianca (solo esterno)</span><span class="budget-val">$0 GRATIS</span></div>
+      <div class="budget-row"><span class="budget-label">Capitol (visite guidate limitate)</span><span class="budget-val">$0 GRATIS</span></div>
+      <div class="budget-row"><span class="budget-label">Zoo Nazionale (Smithsonian)</span><span class="budget-val">$0 GRATIS</span></div>
+    </div>
+    <div class="budget-card">
+      <div class="budget-title">🏙 Stima DC – 3 giorni a persona</div>
+      <div class="budget-row"><span class="budget-label">Adulto</span><span class="budget-val">~$130–180</span></div>
+      <div class="budget-row"><span class="budget-label">14 anni</span><span class="budget-val">~$100–140</span></div>
+      <div class="budget-row"><span class="budget-label">9 anni</span><span class="budget-val">~$70–100</span></div>
+      <div class="budget-total">
+        <span class="budget-total-label">Totale gruppo</span>
+        <span class="budget-total-val">~$640–1.000</span>
+      </div>
+    </div>
+
+    <p class="section-header">Riepilogo Totale Viaggio (escluso hotel+voli)</p>
+    <div class="budget-card">
+      <div class="budget-row"><span class="budget-label">New York (7 gg)</span><span class="budget-val">~$2.600–3.900</span></div>
+      <div class="budget-row"><span class="budget-label">Philadelphia (3 gg)</span><span class="budget-val">~$980–1.550</span></div>
+      <div class="budget-row"><span class="budget-label">Atlantic City (1 gg)</span><span class="budget-val">~$350–600</span></div>
+      <div class="budget-row"><span class="budget-label">Washington DC (3 gg)</span><span class="budget-val">~$640–1.000</span></div>
+      <div class="budget-row"><span class="budget-label">Trasporti interni (metro, bus, treni)</span><span class="budget-val">~$300–500</span></div>
+      <div class="budget-total">
+        <span class="budget-total-label">TOTALE GRUPPO (6 pers.)</span>
+        <span class="budget-total-val">~$4.870–7.550</span>
+      </div>
+    </div>
+    <div class="info-box warn" style="margin-top:1rem">
+      <strong>💡 Consigli risparmio</strong>
+      Prenota attrazioni online con anticipo (sconto 10-20%). City Pass NY non conviene con bambini piccoli. A DC risparmiate molto: quasi tutto gratis. Supermercati per colazioni e spuntini (Trader Joe's, Whole Foods).
+    </div>
+
+    <p class="section-header">🏨 Dove Alloggiare</p>
+    <div class="budget-card">
+      <div class="budget-title">New York – già prenotato (Times Square)</div>
+      <div class="budget-row"><span class="budget-label">Posizione</span><span class="budget-val">Ottima ★★★★★</span></div>
+    </div>
+    <div class="budget-card">
+      <div class="budget-title">Philadelphia – zona consigliata</div>
+      <div class="budget-row"><span class="budget-label">Old City / Center City</span><span class="budget-val">Zone migliori</span></div>
+      <div class="budget-row"><span class="budget-label">Distanza attrazioni</span><span class="budget-val">5-10 min a piedi</span></div>
+      <div class="budget-row"><span class="budget-label">Budget hotel (6 pers.)</span><span class="budget-val">$180–300/notte</span></div>
+    </div>
+    <div class="budget-card">
+      <div class="budget-title">Washington DC – zona consigliata</div>
+      <div class="budget-row"><span class="budget-label">Penn Quarter / Capitol Hill</span><span class="budget-val">Zone migliori</span></div>
+      <div class="budget-row"><span class="budget-label">Distanza National Mall</span><span class="budget-val">10-15 min a piedi</span></div>
+      <div class="budget-row"><span class="budget-label">Budget hotel (6 pers.)</span><span class="budget-val">$160–280/notte</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const pois = {
+  'hotel-ts':{title:'Il vostro Hotel – Times Square',type:'sight',cost:'GIÀ PRENOTATO',desc:'Siete nel cuore di Manhattan. Tutto è raggiungibile a piedi: Empire State, Rockefeller, High Line, Central Park. Posizione perfetta per esplorare sia di giorno che di sera quando le luci si accendono.',tip:'Di notte le luci di Times Square sono spettacolari. Usatela come base per esplorare sia verso nord (Central Park) che verso sud (Wall St).'},
+  'ts':{title:'Times Square',type:'sight',cost:'GRATIS',desc:'La piazza più famosa del mondo. Di giorno animata di turisti e artisti di strada, di notte uno spettacolo di luci LED immenso. A 2 minuti dal vostro hotel.',tip:'Per la foto migliore, andate alle 6-7 di mattina: quasi deserta!'},
+  'rock':{title:'Top of the Rock – Rockefeller Center',type:'sight',cost:'$40 adulto / $28 kid',desc:'Il miglior punto panoramico di NYC. Vedete l\'Empire State Building, Central Park e Manhattan a 360°. Prenota online per risparmiare. Tramonto consigliato.',tip:'Prenota online (10% sconto). Vai al tramonto (ore 19-20 in agosto) per la vista day-to-night.'},
+  'esb':{title:'Empire State Building',type:'sight',cost:'$44 adulto / $38 kid',desc:'Icona assoluta di NYC. Osservatorio al 86° e 102° piano. Vista strepitosa. A 10 minuti a piedi dall\'hotel.',tip:'Se scegli solo UN osservatorio, il Top of the Rock ha una vista più bella perché vedi ANCHE l\'Empire State. Valuta.'},
+  'cp':{title:'Central Park',type:'fun',cost:'GRATIS',desc:'880 ettari di verde nel cuore di Manhattan. Zoo, lago con barche, The Ramble, Strawberry Fields (monumento a Lennon). Perfetto con bambini.',tip:'Noleggiate bici (circa $15/ora) per girare il parco. I bambini adoreranno.'},
+  'hl':{title:'High Line',type:'fun',cost:'GRATIS',desc:'Parco sopraelevato su vecchia ferrovia. Vista spettacolare su Manhattan e sul Hudson. Passeggiata di circa 2,5 km.',tip:'Iniziate dall\'estremità sud (34th St) e camminate verso nord. Molti bar e cibo lungo il percorso.'},
+  'bb':{title:'Brooklyn Bridge',type:'sight',cost:'GRATIS',desc:'Attraversate il ponte a piedi (20 min) per vista unica su Manhattan skyline e East River. Poi esplorate Brooklyn Heights Promenade.',tip:'Fate il ponte di mattina presto o sera per evitare la folla. La vista è da cartolina.'},
+  'pizza':{title:"Joe's Pizza Broadway",type:'food',cost:'$4-5/fetta',desc:"Pizza al taglio in stile newyorkese autentica. Una delle migliori della città. Perfetta per un pranzo veloce ed economico. A 15 min dall'hotel.",tip:'Ordina la classica mozzarella. È fondamentale nella vita.'},
+  'tacos':{title:'Los Tacos No.1',type:'food',cost:'$4-6/taco',desc:'I tacos messicani migliori di Times Square. Carne asada, pollo asado, ingredienti freschi. Fila rapida. Ottimo per pranzo o cena.',tip:'Prendi i tacos "con todo" (con tutto). La salsa è gratis, abbonda.'},
+  'indephall':{title:'Independence Hall',type:'sight',cost:'GRATIS (prenotazione)',desc:'Qui fu firmata la Dichiarazione d\'Indipendenza e la Costituzione americana. Tour guidato obbligatorio con ranger NPS. Prenotare su recreation.gov ($1 fee).',tip:'Prenota online PRIMA della partenza – i tour si esauriscono. Porta i documenti.'},
+  'lbell':{title:'Liberty Bell',type:'sight',cost:'GRATIS',desc:'La Liberty Bell è l\'icona dell\'indipendenza americana. Mostra gratuita, nessuna prenotazione necessaria. Aperto 9-17.',tip:'Arriva al mattino presto per evitare la fila. Fermati anche al Washington Square vicino.'},
+  'amrev':{title:'Museo della Rivoluzione Americana',type:'sight',cost:'$21 adulto / $13 (6-17)',desc:'Eccellente museo interattivo sulla guerra d\'indipendenza. Prevedi 3-4 ore. La Tenda da Guerra di Washington è il pezzo più emozionante.',tip:'Prendi prima i biglietti online. Ideale dopo la visita all\'Independence Hall.'},
+  'betsy':{title:'Casa di Betsy Ross',type:'sight',cost:'$7 adulto / $5 kid',desc:'La piccola casa settecentesca dove Betsy Ross cucì la prima bandiera americana a stelle e strisce. Tour breve ma affascinante con attore in costume.',tip:'Visita veloce (45 min). Ottima per bambini.'},
+  'magic':{title:"Magic Gardens di Philadelphia",type:'fun',cost:'$15 adulto / $5 kid',desc:'Installazione artistica unica al mondo: labirinto di mosaici, specchi, bottiglie e biciclette. Strano e bellissimo. Zona South Street vivace.',tip:'Acquista i biglietti online (esaurisce spesso). Porta i bambini – si divertono tantissimo.'},
+  'reading':{title:'Reading Terminal Market',type:'food',cost:'$8-15 pp',desc:'Storico mercato coperto dal 1893. Oltre 100 bancarelle con cibo di ogni tipo: cheesesteak autentico, pretzel pennsylvaniani, dolci amish. Il pranzo ideale a Philly.',tip:'Down Home Diner per colazione/brunch (famosi i pancake). Dutch Eating Place per il loro apple dumpling.'},
+  'phcheese':{title:'Philly Cheesesteak',type:'food',cost:'$10-16',desc:"Il panino simbolo di Philadelphia: carne di manzo a fettine, Cheez Whiz (o provolone), cipolla. OBBLIGATORIO. Pat's vs Geno's (aperto 24h, nel quartiere south Philly).",tip:"Pat's è l'originale (1930). Di notte sono entrambi aperti – esperienza iconica."},
+  'capitol':{title:'Campidoglio USA',type:'sight',cost:'GRATIS',desc:'Il Congresso americano. Visita guidata gratuita (prenota con mesi di anticipo tramite il tuo Senatore/Congressista – difficile). Oppure ammira l\'esterno e il National Mall che si apre davanti.',tip:'Anche solo dall\'esterno è impressionante. Il giardino del Capitol è bellissimo e libero.'},
+  'wash-mon':{title:'Washington Monument',type:'sight',cost:'GRATIS (ascensore $1)',desc:'Obelisco di 169 metri, simbolo di DC. Vista dall\'interno limitata, ma camminare intorno al Reflecting Pool verso Lincoln Memorial è un\'esperienza unica.',tip:'Il passaggio dal Washington Mon. al Lincoln Memorial lungo il Reflecting Pool è uno dei più belli d\'America.'},
+  'lincoln':{title:'Lincoln Memorial',type:'sight',cost:'GRATIS',desc:'Il monumento a Lincoln con la famosa scalinata. Vista sul Reflecting Pool e Washington Monument dall\'alto è iconica. Di notte è ancora più suggestivo.',tip:'Vai di sera: illuminato, meno folla, atmosfera indimenticabile.'},
+  'whitehouse':{title:'Casa Bianca',type:'sight',cost:'GRATIS (solo esterno)',desc:'Solo visita esterna dalla Pennsylvania Ave (cancelli chiusi per sicurezza). Foto iconica garantita. A due passi dal Foggy Bottom e dal Mall.',tip:'I tour interni si prenotano mesi prima tramite Senatori USA (quasi impossibile per turisti stranieri). Accontentati del cancello.'},
+  'smithair':{title:'National Air & Space Museum',type:'fun',cost:'GRATIS',desc:'Il museo Smithsonian sull\'aviazione e la conquista dello spazio. I bambini impazziscono. Moduli Apollo, primo aereo dei Wright, simulatori. Prevedi 3-4 ore.',tip:'È il museo più visitato al mondo. Arriva all\'apertura (10:00) per evitare la folla.'},
+  'vietnam':{title:'Vietnam Veterans Memorial',type:'sight',cost:'GRATIS',desc:'Muro commemorativo con i nomi dei 58.000 caduti nella guerra del Vietnam. Uno dei monumenti più toccanti d\'America. A pochi passi dal Lincoln.',tip:'Porta fazzoletti. È emozionante come pochi posti al mondo.'},
+  'bens':{title:"Ben's Chili Bowl",type:'food',cost:'$8-14 pp',desc:"Leggendario diner di Washington dal 1958. L'half-smoke (salsiccia piccante con chili) è il piatto signature. Icona culturale afroamericana, approvato da Obama.",tip:"Prendi l'half-smoke con chili e senape. Punto fermo della cultura DC da 60 anni."},
+  'acboard':{title:'Atlantic City Boardwalk',type:'sight',cost:'GRATIS (passeggiata)',desc:'La celebre passeggiata in legno sul mare, la più antica d\'America (1870). Negozi, ristoranti, casino, artisti di strada. Si estende per 5 km lungo l\'oceano.',tip:'Passeggiata migliore al tramonto. La sera si anima con musica e luci.'},
+  'steelpier':{title:'Steel Pier – Parco Divertimenti',type:'fun',cost:'$20-40 pp (gettoni)',desc:'Parco di attrazioni sul molo: ruota panoramica, giostre, elicottero. Perfetto per i fratellini. Non a gettoni fissi: si pagano le attrazioni singolarmente.',tip:"La ruota panoramica ($8) vale il biglietto: vista sull'oceano e sui casino. I bambini adoreranno."},
+  'caesars':{title:'Caesars Atlantic City Casino',type:'fun',cost:'Ingresso libero',desc:'Il casino più famoso di AC. Anche solo entrare e guardare è uno spettacolo. Solo gli adulti possono giocare. Bar, ristoranti, shopping interno.',tip:'I bambini non possono stare nelle aree slot/gioco. Ottimo punto di ritrovo per la famiglia però.'},
+  'hardrock':{title:'Hard Rock Hotel & Casino',type:'fun',cost:'Ingresso libero',desc:'Hotel a tema musicale con memorabilia di rockstar e buon cibo. Ristorante con ottimi hamburger. Anche qui solo adulti alle slot.',tip:'Il Hard Rock Café interno è ottimo per cena famiglia (prezzi medi).'},
+  'acbeach':{title:'Spiaggia di Atlantic City',type:'fun',cost:'$7 pp ingresso',desc:'Spiaggia di sabbia fine sull\'Atlantico. Ottima per una mattinata. Calda in agosto. I bambini possono fare il bagno nell\'oceano Atlantico – una bellissima esperienza.',tip:'Porta crema solare SPF50+. L\'oceano è più freddo del Mediterraneo ma balneabile in agosto.'}
+};
+
+const cityPois={
+  ny:['hotel-ts','ts','rock','esb','cp','hl','bb','pizza','tacos'],
+  ph:['indephall','lbell','amrev','betsy','magic','reading','phcheese'],
+  dc:['capitol','wash-mon','lincoln','whitehouse','smithair','vietnam','bens'],
+  ac:['acboard','steelpier','caesars','hardrock','acbeach']
+};
+
+const days=[
+  {date:'5 ago',label:'Giu 5',city:'NY',title:'Arrivo a New York',sub:'Sistemarsi, prime impressioni',items:[
+    {t:'Mattina/Pomeriggio',name:'Atterraggio & Hotel',type:'sight',desc:"Arrivo all'aeroporto (JFK o EWR). Prendi la subway o AirTrain fino a Times Square. Check-in hotel. Lascia i bagagli se è presto.",cost:'Metro $2.90/pp'},
+    {t:'Pomeriggio',name:'Prima Esplorazione – Times Square',type:'sight',desc:"Passeggiata nel quartiere: Times Square, Broadway, Rockefeller Center (esterno). Prima impressione di NYC.",cost:'GRATIS'},
+    {t:'Sera',name:"Joe's Pizza Broadway",type:'food',desc:"Prima cena newyorkese: pizza al taglio autentica. Classica, economica, perfetta dopo un lungo volo.",cost:'$20–30 per 6 persone'}
+  ]},
+  {date:'6 ago',label:'Mer 6',city:'NY',title:'Manhattan Highlights',sub:'Empire State, High Line, Chelsea',items:[
+    {t:'Mattina 9:00',name:'Empire State Building',type:'sight',desc:'Vai all\'apertura per evitare la fila. Vista straordinaria su tutta Manhattan. Prenota online la sera prima.',cost:'$44 adulto, $38 kid'},
+    {t:'Pranzo',name:'7th Street Burger / Los Tacos No.1',type:'food',desc:'Pranzo veloce nei pressi di Times Square. Los Tacos No.1 è a 2 min, economicissimo e buonissimo.',cost:'$8-14 pp'},
+    {t:'Pomeriggio',name:'High Line',type:'sight',desc:'Parco sopraelevato su vecchia ferrovia. 2.5 km di passeggiata con vista su Manhattan. Poi scendi nel quartiere Chelsea/Meatpacking.',cost:'GRATIS'},
+    {t:'Sera',name:'Times Square by Night',type:'sight',desc:'Rientrate in hotel e poi uscite a vedere Times Square illuminata di notte. È spettacolare.',cost:'GRATIS'}
+  ]},
+  {date:'7 ago',label:'Gio 7',city:'NY',title:'Central Park & Upper Manhattan',sub:'Il polmone verde di NYC',items:[
+    {t:'Mattina 9:00',name:'Central Park',type:'sight',desc:'Entrate da Columbus Circle. Zoo del parco ($14), Strawberry Fields, Belvedere Castle (gratis), lago con barche da noleggiare.',cost:'GRATIS (zoo $14 adulto)'},
+    {t:'Pranzo',name:'Cibo nel parco',type:'food',desc:'Compra hot dog e pretzel dai carretti dentro Central Park. Economicissimo e autentico NY.',cost:'$5-8 pp'},
+    {t:'Pomeriggio',name:'Museum Mile (5th Ave)',type:'sight',desc:'Passeggiata sulla Fifth Avenue. Guggenheim esterno, Metropolitan Museum (opzionale, $30 adulto). O continua nel parco.',cost:'GRATIS/opzionale'},
+    {t:'Sera',name:'Diner classico americano',type:'food',desc:'Cena in un diner tradizionale. Times Square Diner è ottimo, economico, aperto sempre.',cost:'$12-20 pp'}
+  ]},
+  {date:'8 ago',label:'Ven 8',city:'NY',title:'Top of the Rock & Brooklyn',sub:'Il tramonto più bello di NY',items:[
+    {t:'Mattina',name:'Brooklyn Bridge a piedi',type:'sight',desc:'Prendete la subway fino a Brooklyn side. Attraversate il ponte a piedi (25 min), godendovi la vista su Manhattan. Poi DUMBO per foto iconiche.',cost:'GRATIS'},
+    {t:'Pranzo',name:'Brooklyn – Grimaldi\'s o Juliana\'s',type:'food',desc:'Pizza in mattoni tradizionale sotto il ponte. Una delle pizzerie più famose di NY.',cost:'$18-25 pp'},
+    {t:'Pomeriggio 16:00',name:'Top of the Rock – Tramonto',type:'sight',desc:'Prenota il ticket al tramonto (ore 19-20 in agosto). Vedrete Manhattan sia di giorno che illuminata di notte. Spettacolo assoluto.',cost:'$40 adulto, $28 kid'},
+    {t:'Sera',name:'Passeggiata notturna Midtown',type:'sight',desc:'Dopo il Rock, cena nelle vicinanze e passeggiata notturna.',cost:'GRATIS'}
+  ]},
+  {date:'9 ago',label:'Sab 9',city:'NY',title:'Statua della Libertà & Lower Manhattan',sub:'Un simbolo del mondo',items:[
+    {t:'Mattina 8:30',name:'Battery Park – Traghetto Statua',type:'sight',desc:'Prendi il traghetto da Battery Park. Visita Liberty Island e Ellis Island (immigrazione). Prenota i biglietti ONLINE prima della partenza. ',cost:'$24 adulto, $12 kid (9 anni)'},
+    {t:'Pranzo',name:'Mangia a Lower Manhattan',type:'food',desc:'Esplora il Financial District. Cibo di strada nella zona o un fast-food prima di continuare.',cost:'$10-15 pp'},
+    {t:'Pomeriggio',name:'Wall Street & 9/11 Memorial',type:'sight',desc:'Toro di Wall Street (foto gratis!), 9/11 Memorial & Museum (museo $33 adulto, memorial gratis). Momento toccante.',cost:'Memorial GRATIS, Museo $33 adulto'},
+    {t:'Sera',name:'Chinatown / Little Italy',type:'food',desc:'Cena in Chinatown: ottimo rapporto qualità-prezzo. Ramen, dumpling, noodles per tutta la famiglia.',cost:'$8-15 pp'}
+  ]},
+  {date:'10 ago',label:'Dom 10',city:'NY',title:'Giornata Libera & Shopping',sub:'Esplora i quartieri',items:[
+    {t:'Mattina',name:'SoHo & Greenwich Village',type:'sight',desc:'Quartieri bohémien di NYC. Negozi, street art, caffè. Washington Square Park è bellissimo (gratis).',cost:'GRATIS'},
+    {t:'Pranzo',name:'Chelsea Market',type:'food',desc:'Enorme mercato coperto con street food di tutto il mondo. Perfetto per una famiglia con gusti diversi.',cost:'$10-18 pp'},
+    {t:'Pomeriggio',name:'Shopping o relax',type:'sight',desc:'H&M, Zara, Century 21 (saldi su brand americani) o semplicemente rilassarsi.',cost:'Budget libero'},
+    {t:'Sera',name:'Cena in famiglia',type:'food',desc:'Scegli il ristorante preferito del viaggio. Oppure torna da Joe\'s Pizza che piace sempre a tutti.',cost:'$15-25 pp'}
+  ]},
+  {date:'11 ago',label:'Lun 11',city:'NY',title:'Ultimo Giorno a New York',sub:'Souvenir & arrivederci Manhattan',items:[
+    {t:'Mattina',name:'Grand Central Terminal',type:'sight',desc:'La stazione più bella del mondo. Main Concourse è gratuita e meravigliosa. Architettura beaux-arts incredibile.',cost:'GRATIS'},
+    {t:'Pranzo',name:'Sushi o Deli',type:'food',desc:'Prova un deli newyorkese: pastrami sandwich, bagel con salmone. Katz\'s Deli (famoso, $20-25pp) o un deli di quartiere.',cost:'$12-25 pp'},
+    {t:'Pomeriggio',name:'Souvenir & Bryant Park',type:'sight',desc:'Ultimo giro per souvenir. Bryant Park (gratis) è piacevolissimo con fontane e verde. A 2 min dall\'hotel.',cost:'GRATIS'},
+    {t:'Sera',name:'Ultima cena a NYC',type:'food',desc:'Cena speciale: cucina italiana a NYC (Carmine\'s è ottimo per grandi gruppi, porzioni enormi, prezzi ragionevoli).',cost:'$20-35 pp'}
+  ]},
+  {date:'12 ago',label:'Mar 12',city:'PH',title:'New York → Philadelphia',sub:'Arrivo a Philly, Old City',items:[
+    {t:'Mattina',name:'Checkout NY & Treno',type:'sight',desc:'Amtrak da Penn Station NYC a 30th Street Station Philadelphia. Circa 1h15. Biglietti $30-50 pp A/R. Prenota online.',cost:'~$30-50 pp'},
+    {t:'Pranzo',name:'Reading Terminal Market',type:'food',desc:'Primo contatto con Philly: il mercato coperto più famoso. Prova subito il cheesesteak autentico.',cost:'$10-15 pp'},
+    {t:'Pomeriggio',name:'Quartiere Old City',type:'sight',desc:'Passeggiata nell\'Old City: Elfreth\'s Alley (vicolo più antico d\'America), Christ Church, murales.',cost:'GRATIS'},
+    {t:'Sera',name:'Giro a piedi del quartiere',type:'sight',desc:'Il centro storico di Philly è compatto e bellissimo di sera. Cena in zona.',cost:'$12-20 pp'}
+  ]},
+  {date:'13 ago',label:'Mer 13',city:'PH',title:'Giornata Storica Philadelphia',sub:'Liberty Bell, Independence Hall, musei',items:[
+    {t:'Mattina 9:00',name:'Liberty Bell (GRATIS)',type:'sight',desc:'Apre alle 9. Arriva puntuale per evitare fila. Poi Independence Hall (tour 9:30-17:00, prenota su recreation.gov).',cost:'GRATIS'},
+    {t:'Mattina/Pranzo',name:'Betsy Ross & Benjamin Franklin Museum',type:'sight',desc:'Casa di Betsy Ross ($7), poi Franklin Museum ($5). Entrambi vicinissimi e adatti ai bambini.',cost:'$7-5 adulto'},
+    {t:'Pranzo',name:'Cheesesteak autentico',type:'food',desc:'Jim\'s Steaks o Pat\'s (per chi è in zona south Philly) o Reading Terminal. OBBLIGATORIO.',cost:'$12-16 pp'},
+    {t:'Pomeriggio',name:'Museo della Rivoluzione Americana',type:'sight',desc:'Il museo più completo sulla rivoluzione. La Tenda da Guerra di Washington è straordinaria. 2-3 ore.',cost:'$21 adulto, $13 kid'},
+    {t:'Sera',name:'South Street & Magic Gardens',type:'fun',desc:'Passeggiata in South Street, zona giovane e colorata. Cena nei locali del quartiere.',cost:'$12-20 pp'}
+  ]},
+  {date:'14 ago',label:'Gio 14',city:'AC',title:'Gita ad Atlantic City',sub:'Oceano, Boardwalk, divertimento',items:[
+    {t:'Mattina 8:30',name:'Treno Philly → Atlantic City',type:'sight',desc:'SEPTA/NJ Transit da Jefferson Station Philly a AC. Circa 1h10. Frequente e economico.',cost:'~$7-14 pp A/R'},
+    {t:'Mattina',name:'Boardwalk & Spiaggia',type:'fun',desc:'Passeggiata sul famoso boardwalk di legno. Poi spiaggia sull\'Atlantico. I fratellini fanno il bagno nell\'oceano!',cost:'$7 pp spiaggia'},
+    {t:'Pranzo',name:'Cibo sul Boardwalk',type:'food',desc:'Hot dog, funnel cake, pizza a fette. Tutto lungo il boardwalk, informale e divertente.',cost:'$10-18 pp'},
+    {t:'Pomeriggio',name:'Steel Pier – Parco Giostre',type:'fun',desc:'Giostre per i fratelli, ruota panoramica, vista sull\'oceano. Pacchetti gettoni disponibili.',cost:'$20-40 pp'},
+    {t:'Sera',name:'Rientro a Philadelphia',type:'sight',desc:'Treno di rientro. Cena a Philly o take-away.',cost:'incluso in A/R'}
+  ]},
+  {date:'15 ago',label:'Ven 15',city:'DC',title:'Philadelphia → Washington DC',sub:'La capitale americana',items:[
+    {t:'Mattina',name:'Checkout Philly & Amtrak',type:'sight',desc:'Treno Amtrak da Philadelphia 30th St a Washington Union Station. ~1h45. Economico e comodo.',cost:'~$25-45 pp'},
+    {t:'Pomeriggio',name:'National Mall – Prima Esplorazione',type:'sight',desc:'Arriva, sistema i bagagli, poi dritti al National Mall. Washington Monument, Reflecting Pool, Lincoln Memorial al tramonto.',cost:'GRATIS'},
+    {t:'Sera',name:"Ben's Chili Bowl",type:'food',desc:"Cena d'obbligo a DC. L'half-smoke è leggendario. Icona culturale della capitale.",cost:'$10-16 pp'}
+  ]},
+  {date:'16 ago',label:'Sab 16',city:'DC',title:'I Grandi Monumenti di DC',sub:'Mall completo + Casa Bianca',items:[
+    {t:'Mattina 9:00',name:'Smithsonian Museums',type:'fun',desc:'Air & Space Museum (bambini in estasi), Natural History Museum (entrata gratis, dinosauri!), American History Museum. Prevedi 3-4 ore.',cost:'GRATIS'},
+    {t:'Pranzo',name:'Food Trucks National Mall',type:'food',desc:'Lungo il Mall ci sono food truck con cucina etnica. El Rinconcito Café è ottimo per pupusas salvadoregne.',cost:'$10-14 pp'},
+    {t:'Pomeriggio',name:'Casa Bianca & Downtown',type:'sight',desc:'Foto fuori dalla Casa Bianca. Poi passeggiata lungo Pennsylvania Avenue verso il Campidoglio. Georgetown (quartiere storico) opzionale.',cost:'GRATIS'},
+    {t:'Sera',name:'U Street / Adams Morgan',type:'food',desc:'Quartieri vivaci di DC. Ottimo street food, ristoranti etnici, vibe locale autentica.',cost:'$12-20 pp'}
+  ]},
+  {date:'17 ago',label:'Dom 17',city:'DC',title:'Musei & Quartieri di DC',sub:'Storia e cultura americana',items:[
+    {t:'Mattina',name:'Vietnam & Korean War Memorials',type:'sight',desc:'Monumenti toccanti e potenti. Vietnam Memorial con i 58.000 nomi incisi è un\'esperienza che non si dimentica.',cost:'GRATIS'},
+    {t:'Mattina',name:'Lincoln Memorial',type:'sight',desc:'Salite i gradini. Vista sul Mall da qui è epica. "I have a dream" fu pronunciato qui.',cost:'GRATIS'},
+    {t:'Pranzo',name:'The Well Dressed Burrito',type:'food',desc:'Burrito enorme a prezzo onesto. Uno dei migliori fast-casual di DC.',cost:'$10-14 pp'},
+    {t:'Pomeriggio',name:'National Zoo (Smithsonian)',type:'fun',desc:'Zoo nazionale completamente GRATIS. Panda gigante, elefanti, scimmie. Perfetto per i fratellini. 3-4 ore.',cost:'GRATIS'},
+    {t:'Sera',name:'Ultima cena a DC',type:'food',desc:'Cena in zona. Il quartiere Penn Quarter ha ottimi ristoranti a prezzi vari.',cost:'$15-25 pp'}
+  ]},
+  {date:'18 ago',label:'Lun 18',city:'NY',title:'DC → New York (ultima notte)',sub:'Ritorno e notte a New York',items:[
+    {t:'Mattina',name:'Mattinata libera a DC',type:'sight',desc:'Ultima passeggiata al Mall o visita a qualcosa rimasto. Checkout dall\'hotel.',cost:'GRATIS'},
+    {t:'Pomeriggio',name:'Amtrak DC → New York',type:'sight',desc:'Treno da Union Station DC a Penn Station NYC. ~3 ore. Prenota in anticipo.',cost:'$40-70 pp'},
+    {t:'Sera',name:'Ultima notte a Times Square',type:'sight',desc:'Sei di nuovo a New York. Ultima passeggiata a Times Square illuminata. Cena nel quartiere.',cost:'$15-25 pp'},
+    {t:'Notte',name:'Hotel a Times Square o JFK vicino',type:'sight',desc:'Prepara i bagagli. Volo la mattina del 19. Sveglia presto!',cost:'Hotel pre-partenza'}
+  ]},
+  {date:'19 ago',label:'Mar 19',city:'NY',title:'Partenza – Arrivederci USA! ✈️',sub:'Last morning, poi aeroporto',items:[
+    {t:'Presto mattina',name:'Bagagli & Check-out',type:'sight',desc:'Sveglia presto. Controlla tutti i documenti, biglietti aerei, passaporti.',cost:''},
+    {t:'Mattina',name:'Aeroporto JFK o EWR',type:'sight',desc:'Prendi taxi/Uber o AirTrain per JFK. Calcola 1h30 prima del volo per check-in e security. Non perdere il volo!',cost:'Taxi $50-70 o AirTrain $9pp'},
+    {t:'Volo',name:'Rientro in Italia 🇮🇹',type:'sight',desc:'Fine del viaggio. Ricordi indimenticabili, foto bellissime, esperienza di vita.',cost:''}
+  ]}
+];
+
+let currentCity='ny';
+let currentDay=0;
+let selectedPoi=null;
+
+function goHome(){
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('splash').style.opacity='1';
+  document.getElementById('splash').style.display='flex';
+}
+
+function openView(view){
+  document.getElementById('splash').style.opacity='0';
+  setTimeout(()=>{
+    document.getElementById('splash').style.display='none';
+    document.getElementById('app').classList.add('visible');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+view).classList.add('active');
+    const titles={map:'Mappa Interattiva',itinerary:'Itinerario',budget:'Budget & Costi'};
+    document.getElementById('topbar-title').textContent=titles[view];
+    if(view==='map')renderPoiList('ny');
+    if(view==='itinerary')renderItinerary();
+  },400);
+}
+
+function setCity(city,el){
+  currentCity=city;
+  document.querySelectorAll('.city-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['ny','ph','dc','ac'].forEach(c=>{
+    document.getElementById('map-'+c).style.display=c===city?'block':'none';
+  });
+  document.getElementById('poi-detail').classList.remove('show');
+  selectedPoi=null;
+  renderPoiList(city);
+}
+
+function renderPoiList(city){
+  const ids=cityPois[city]||[];
+  let html='<p class="section-header">Tocca un punto sulla mappa o seleziona:</p><div class="poi-list">';
+  ids.forEach(id=>{
+    const p=pois[id];
+    if(!p)return;
+    const icons={sight:'🏛️',food:'🍽️',fun:'⭐'};
+    const cls={sight:'sight',food:'food',fun:'fun'};
+    const isFree=p.cost==='GRATIS'||p.cost.startsWith('$0');
+    html+=`<div class="poi-card" id="card-${id}" onclick="selectPoi('${id}')">
+      <div class="poi-icon ${cls[p.type]}">${icons[p.type]}</div>
+      <div style="flex:1;min-width:0">
+        <div class="poi-title">${p.title}</div>
+        <div class="poi-meta">${p.type==='sight'?'Attrazione':p.type==='food'?'Ristorante/Cibo':'Divertimento'}</div>
+        <div class="poi-cost ${isFree?'free':''}">${p.cost}</div>
+        <div class="poi-desc">${p.desc}${p.tip?`<div class="poi-tip">💡 ${p.tip}</div>`:''}</div>
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('poi-list-container').innerHTML=html;
+}
+
+function showMapPoi(id){
+  selectPoi(id);
+  const card=document.getElementById('card-'+id);
+  if(card)card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function selectPoi(id){
+  document.querySelectorAll('.poi-card').forEach(c=>c.classList.remove('selected'));
+  const card=document.getElementById('card-'+id);
+  if(card){
+    if(selectedPoi===id){
+      card.classList.remove('selected');
+      selectedPoi=null;
+    } else {
+      card.classList.add('selected');
+      selectedPoi=id;
+    }
+  }
+}
+
+function renderItinerary(){
+  const sel=document.getElementById('day-selector');
+  let tabsHtml='';
+  days.forEach((d,i)=>{
+    const cityColors={NY:'#f5a623',PH:'#4ecdc4',DC:'#52e3a0',AC:'#4a9eff'};
+    tabsHtml+=`<button class="day-btn ${i===0?'active':''}" onclick="selectDay(${i},this)">${d.label}</button>`;
+  });
+  sel.innerHTML=tabsHtml;
+  renderDay(0);
+}
+
+function selectDay(idx,el){
+  currentDay=idx;
+  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderDay(idx);
+}
+
+function renderDay(idx){
+  const d=days[idx];
+  const cityNames={NY:'New York',PH:'Philadelphia',DC:'Washington DC',AC:'Atlantic City'};
+  const cityEmojis={NY:'🗽',PH:'🏛️',DC:'🦅',AC:'🎰'};
+  let html=`<div class="day-header">
+    <div class="day-title">${d.title} <span class="day-city-badge">${cityEmojis[d.city]} ${cityNames[d.city]}</span></div>
+    <div class="day-subtitle">${d.date} · ${d.sub}</div>
+  </div><div class="timeline">`;
+  d.items.forEach(item=>{
+    const dotClass=item.type==='food'?'food':'sight';
+    const isFreeItem=item.cost===''||item.cost==='GRATIS'||item.cost.startsWith('GRATIS');
+    const isLow=item.cost.startsWith('~$')||item.cost.startsWith('$');
+    html+=`<div class="tl-item">
+      <div class="tl-dot ${dotClass}"></div>
+      <div class="tl-time">${item.t}</div>
+      <div class="tl-name">${item.name}</div>
+      <div class="tl-desc">${item.desc}</div>
+      ${item.cost?`<div class="tl-cost"><span class="${isFreeItem?'free':isLow?'low':''}">${item.cost}</span></div>`:''}
+    </div>`;
+  });
+  html+='</div>';
+
+  if(d.city==='PH'||d.city==='AC'){
+    html+=`<div class="info-box" style="margin-top:1rem">
+      <strong>🔄 Opzione Atlantic City</strong>
+      Puoi fare Atlantic City come gita da Philadelphia (vedi 14 ago) oppure visitare Philadelphia in giornata da AC se decidete di dormire là. Entrambe le opzioni sono incluse nell'itinerario.
+    </div>`;
+  }
+  document.getElementById('day-content').innerHTML=html;
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  renderPoiList('ny');
+  renderItinerary();
+});
+</script>
+</body>
+</html>
